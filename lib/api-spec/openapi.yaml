@@ -1,0 +1,393 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Resource Hub API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: folders
+    description: Folder operations
+  - name: resources
+    description: Resource operations
+  - name: stats
+    description: Stats operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /folders:
+    get:
+      operationId: listFolders
+      tags: [folders]
+      summary: List all folders
+      responses:
+        "200":
+          description: List of folders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Folder"
+    post:
+      operationId: createFolder
+      tags: [folders]
+      summary: Create a folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderInput"
+      responses:
+        "201":
+          description: Created folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+
+  /folders/{id}:
+    get:
+      operationId: getFolder
+      tags: [folders]
+      summary: Get a folder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateFolder
+      tags: [folders]
+      summary: Update a folder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderUpdate"
+      responses:
+        "200":
+          description: Updated folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteFolder
+      tags: [folders]
+      summary: Delete a folder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /resources:
+    get:
+      operationId: listResources
+      tags: [resources]
+      summary: List resources with optional filters
+      parameters:
+        - name: folderId
+          in: query
+          schema:
+            type: integer
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [link, file, video]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+    post:
+      operationId: createResource
+      tags: [resources]
+      summary: Create a resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResourceInput"
+      responses:
+        "201":
+          description: Created resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+
+  /resources/recent:
+    get:
+      operationId: listRecentResources
+      tags: [resources]
+      summary: List recently added resources
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+
+  /resources/{id}:
+    get:
+      operationId: getResource
+      tags: [resources]
+      summary: Get a resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateResource
+      tags: [resources]
+      summary: Update a resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResourceUpdate"
+      responses:
+        "200":
+          description: Updated resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteResource
+      tags: [resources]
+      summary: Delete a resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Get summary stats
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    Folder:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        parentFolderId:
+          type: ["integer", "null"]
+        resourceCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    FolderInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        parentFolderId:
+          type: ["integer", "null"]
+
+    FolderUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        parentFolderId:
+          type: ["integer", "null"]
+
+    Resource:
+      type: object
+      required: [id, name, type, url, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [link, file, video]
+        url:
+          type: string
+        folderId:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+        mimeType:
+          type: ["string", "null"]
+        size:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ResourceInput:
+      type: object
+      required: [name, type, url]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [link, file, video]
+        url:
+          type: string
+        folderId:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+        mimeType:
+          type: ["string", "null"]
+        size:
+          type: ["integer", "null"]
+
+    ResourceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [link, file, video]
+        url:
+          type: string
+        folderId:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+        mimeType:
+          type: ["string", "null"]
+        size:
+          type: ["integer", "null"]
+
+    Stats:
+      type: object
+      required: [totalFolders, totalResources, byType]
+      properties:
+        totalFolders:
+          type: integer
+        totalResources:
+          type: integer
+        byType:
+          type: object
+          required: [link, file, video]
+          properties:
+            link:
+              type: integer
+            file:
+              type: integer
+            video:
+              type: integer

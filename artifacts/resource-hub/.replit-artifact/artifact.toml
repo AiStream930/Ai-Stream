@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Resource Hub"
+version = "1.0.0"
+id = "artifacts/resource-hub"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19111
+
+[services.development]
+run = "pnpm --filter @workspace/resource-hub run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/resource-hub", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/resource-hub/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19111"
+BASE_PATH = "/"
